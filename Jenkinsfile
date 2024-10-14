@@ -6,11 +6,6 @@ pipeline {
         IMAGE_NAME = 'santhoshadmin/k8-node' // Docker Hub username and repository (without the full URL)
     }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: 'https://github.com/ssanthosh2k3/node-app.git' // Checkout the main branch of your GitHub repository
-            }
         }
 
         stage('Build Docker Image') {
