@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/ssanthosh2k3/node-app' // Replace with your GitHub repository URL
+                git 'https://github.com/ssanthosh2k3/node-app.git' // Replace with your GitHub repository URL
             }
         }
 
