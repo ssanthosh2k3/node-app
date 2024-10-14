@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-credentials')  // Docker Hub credentials stored in Jenkins
-        IMAGE_NAME = 'your-dockerhub-username/your-app' // Replace with your Docker Hub username and repository
+        DOCKERHUB_CREDENTIALS = credentials('4f3fafb6-2133-4e42-94a2-351a0b0a5df0')  // Docker Hub credentials stored in Jenkins
+        IMAGE_NAME = 'https://hub.docker.com/r/santhoshadmin/k8-node' // Replace with your Docker Hub username and repository
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/your-repo-url.git' // Replace with your GitHub repository URL
+                git 'https://github.com/ssanthosh2k3/node-app' // Replace with your GitHub repository URL
             }
         }
 
