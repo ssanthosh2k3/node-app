@@ -1,17 +1,24 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = 'santhoshadmin/k8-node' // Your image name
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout the repository
+                // Checkout the code from your GitHub repository
                 git url: 'https://github.com/ssanthosh2k3/node-app.git', branch: 'main'
+            }
+        }
 
-                // List the specific files we need
-                sh '''
-                    echo "Files in the workspace:"
-                    ls -l app.js package.json styles.css
-                '''
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build Docker image using the Dockerfile in the repo
+                    docker.build("${IMAGE_NAME}:${env.BUILD_ID}")
+                }
             }
         }
     }
