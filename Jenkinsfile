@@ -6,7 +6,6 @@ pipeline {
         IMAGE_NAME = 'santhoshadmin/k8-node' // Docker Hub username and repository (without the full URL)
     }
 
-        }
 
         stage('Build Docker Image') {
             steps {
