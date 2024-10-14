@@ -3,20 +3,20 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('4f3fafb6-2133-4e42-94a2-351a0b0a5df0')  // Docker Hub credentials stored in Jenkins
-        IMAGE_NAME = 'https://hub.docker.com/r/santhoshadmin/k8-node' // Replace with your Docker Hub username and repository
+        IMAGE_NAME = 'santhoshadmin/k8-node' // Docker Hub username and repository (without the full URL)
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git 'https://github.com/ssanthosh2k3/node-app.git' // Replace with your GitHub repository URL
+                git branch: 'main', url: 'https://github.com/ssanthosh2k3/node-app.git' // Checkout the main branch of your GitHub repository
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using the Dockerfile
+                    // Build the Docker image using the Dockerfile in the repository
                     docker.build("${IMAGE_NAME}:${env.BUILD_ID}")
                 }
             }
@@ -25,8 +25,12 @@ pipeline {
         stage('Test Docker Image') {
             steps {
                 script {
-                    // Run the Docker image to ensure it works
-                    docker.image("${IMAGE_NAME}:${env.BUILD_ID}").run("-p 3000:3000")
+                    // Run the Docker image to ensure it works in detached mode
+                    def container = docker.image("${IMAGE_NAME}:${env.BUILD_ID}").run("-d -p 3000:3000")
+                    // Optional: Wait for a moment to ensure the container is running
+                    sleep(5) // Adjust sleep time as necessary
+                    // Check if the container is running
+                    sh "docker ps -q --filter 'id=${container.id}'" // Verify container is running
                 }
             }
         }
@@ -34,7 +38,8 @@ pipeline {
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                    // Push the built image to Docker Hub
+                    docker.withRegistry('https://registry.hub.docker.com', DOCKERHUB_CREDENTIALS) {
                         docker.image("${IMAGE_NAME}:${env.BUILD_ID}").push()
                     }
                 }
