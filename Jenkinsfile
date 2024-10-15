@@ -1,4 +1,4 @@
-pipeline {
+ipeline {
     agent any
 
     environment {
@@ -48,14 +48,6 @@ pipeline {
     post {
         always {
             cleanWs() // Clean workspace after the job is complete
-
-            // Clean up unused Docker images
-            script {
-                sh """
-                echo "Cleaning up unused Docker images..."
-                docker image prune -af
-                """
-            }
         }
     }
 }
