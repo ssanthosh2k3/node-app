@@ -13,9 +13,9 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# (Optional) Run a build process if required
+# (Optional) Run a build process if your app requires it
 # Example: RUN npm run build
-# If there's no build step, skip this line.
+# If there is no build step, skip this line.
 
 # Stage 2: Set up NGINX and serve the application
 FROM nginx:alpine
@@ -29,7 +29,7 @@ COPY nginx.conf /etc/nginx/conf.d/
 # Copy the production-ready application files from the build stage
 COPY --from=builder /app /usr/share/nginx/html
 
-# Expose the NGINX port
+# Expose the NGINX port (HTTP)
 EXPOSE 80
 
 # Start the NGINX server
