@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'santhoshadmin/k8-node' // Name for the Docker image
+        IMAGE_NAME = 'santhoshadmin/nodeapp' // Updated the image name to 'nodeapp'
     }
 
     stages {
@@ -16,10 +16,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using shell commands
+                    // Build the Docker image using the build number for tagging
                     sh """
-                    echo "Building Docker image..."
-                    docker build -t ${IMAGE_NAME}:${env.BUILD_ID} .
+                    echo "Building Docker image with tag: ${IMAGE_NAME}:${env.BUILD_NUMBER}..."
+                    docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
                     """
                 }
             }
@@ -35,8 +35,8 @@ pipeline {
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
                         echo "Tagging and pushing the Docker image..."
-                        docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:${env.BUILD_ID}
+                        docker tag ${IMAGE_NAME}:${env.BUILD_NUMBER} ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}
                         docker push ${IMAGE_NAME}:latest
                         """
                     }
