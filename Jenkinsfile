@@ -34,7 +34,7 @@ pipeline {
                         echo "Logging into Docker Hub..."
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
-                        echo "Tagging and pushing the Docker image..."
+                        echo "Tagging annd pushing the Docker image..."
                         docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
                         docker push ${IMAGE_NAME}:${env.BUILD_ID}
                         docker push ${IMAGE_NAME}:latest
