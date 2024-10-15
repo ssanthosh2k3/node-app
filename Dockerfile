@@ -1,4 +1,4 @@
-# Stage 1: Build the application
+# Stage 1: Build the Node.js application
 FROM node:14 AS builder
 
 # Set the working directory inside the container
@@ -17,22 +17,20 @@ COPY . .
 # Example: RUN npm run build
 # In case there's no build step, just skip this line
 
-# Stage 2: Create a production-ready image
-FROM node:14-alpine
+# Stage 2: Set up NGINX and serve the application
+FROM nginx:alpine
 
-# Set the working directory
-WORKDIR /app
+# Remove the default NGINX configuration
+RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy only the necessary files from the builder stage (ignoring dev dependencies)
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app .
+# Copy a custom NGINX configuration
+COPY nginx.conf /etc/nginx/conf.d/
 
-# Install only production dependencies (optional if everything was installed in builder stage)
-# RUN npm install --production
+# Copy the production-ready application files from the build stage
+COPY --from=builder /app /usr/share/nginx/html
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Expose the NGINX port
+EXPOSE 80
 
-# Start the Node.js application
-CMD ["node", "app.js"]
+# Start NGINX server
+CMD ["nginx", "-g", "daemon off;"]
