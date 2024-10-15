@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'santhoshadmin/nodeapp' // Name for the Docker image
+        IMAGE_NAME = 'santhoshadmin/k8-node' // Name for the Docker image
     }
 
     stages {
@@ -12,14 +12,14 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ssanthosh2k3/node-app.git'
             }
         }
-
+        
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image and tag it with the Jenkins build number
+                    // Build the Docker image using shell commands
                     sh """
                     echo "Building Docker image..."
-                    docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
+                    docker build -t ${IMAGE_NAME}:${env.BUILD_ID} .
                     """
                 }
             }
@@ -35,7 +35,9 @@ pipeline {
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
                         echo "Tagging and pushing the Docker image..."
-                        docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}
+                        docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:${env.BUILD_ID}
+                        docker push ${IMAGE_NAME}:latest
                         """
                     }
                 }
@@ -46,6 +48,14 @@ pipeline {
     post {
         always {
             cleanWs() // Clean workspace after the job is complete
+
+            // Clean up unused Docker images
+            script {
+                sh """
+                echo "Cleaning up unused Docker images..."
+                docker image prune -af
+                """
+            }
         }
     }
 }
