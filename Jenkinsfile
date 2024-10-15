@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'santhoshadmin/k8-node' // Name for the Docker image
+        IMAGE_NAME = 'santhoshadmin/nodeapp' // Name for the Docker image
     }
 
     stages {
@@ -12,26 +12,14 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ssanthosh2k3/node-app.git'
             }
         }
-        
-        stage('Get Commit ID') {
-            steps {
-                script {
-                    // Retrieve the commit hash of the current build
-                    COMMIT_HASH = sh(
-                        script: 'git rev-parse --short HEAD', // Get the short version of the commit hash
-                        returnStdout: true
-                    ).trim()
-                }
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image and tag it with the commit hash and the build number
+                    // Build the Docker image and tag it with the Jenkins build number
                     sh """
                     echo "Building Docker image..."
-                    docker build -t ${IMAGE_NAME}:${COMMIT_HASH} -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
+                    docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
                     """
                 }
             }
@@ -47,7 +35,6 @@ pipeline {
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
                         echo "Tagging and pushing the Docker image..."
-                        docker push ${IMAGE_NAME}:${COMMIT_HASH}
                         docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}
                         """
                     }
