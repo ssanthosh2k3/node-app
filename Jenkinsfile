@@ -13,13 +13,25 @@ pipeline {
             }
         }
         
+        stage('Get Commit ID') {
+            steps {
+                script {
+                    // Retrieve the commit hash of the current build
+                    COMMIT_HASH = sh(
+                        script: 'git rev-parse --short HEAD', // Get the short version of the commit hash
+                        returnStdout: true
+                    ).trim()
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using shell commands
+                    // Build the Docker image and tag it with the commit hash and the build number
                     sh """
                     echo "Building Docker image..."
-                    docker build -t ${IMAGE_NAME}:${env.BUILD_ID} .
+                    docker build -t ${IMAGE_NAME}:${COMMIT_HASH} -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
                     """
                 }
             }
@@ -35,9 +47,8 @@ pipeline {
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
                         echo "Tagging and pushing the Docker image..."
-                        docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:${env.BUILD_ID}
-                        docker push ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:${COMMIT_HASH}
+                        docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}
                         """
                     }
                 }
