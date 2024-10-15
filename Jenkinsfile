@@ -1,46 +1,61 @@
 pipeline {
-    agent any 
+    agent any
+
+    environment {
+        IMAGE_NAME = 'santhoshadmin/k8-node' // Name for the Docker image
+    }
 
     stages {
-        stage('Checkout SCM') {
+        stage('Checkout Code') {
             steps {
-                checkout scm
+                // Checkout the code from the main branch
+                git branch: 'main', url: 'https://github.com/ssanthosh2k3/node-app.git'
             }
         }
+        
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo "Building Docker image with tag: santhoshadmin/nodeapp:41..."
-                    sh 'docker build -t santhoshadmin/nodeapp:41 .'
+                    // Build the Docker image using shell commands
+                    sh """
+                    echo "Building Docker image..."
+                    docker build -t ${IMAGE_NAME}:${env.BUILD_ID} .
+                    """
                 }
             }
         }
-        stage('Tag Docker Image') {
-            steps {
-                script {
-                    echo "Tagging the Docker image as latest..."
-                    sh 'docker tag santhoshadmin/nodeapp:41 santhoshadmin/nodeapp:latest'
-                }
-            }
-        }
+
         stage('Push Docker Image') {
             steps {
                 script {
-                    echo "Logging into Docker Hub..."
-                    sh 'echo $DOCKER_HUB_TOKEN | docker login -u santhoshadmin --password-stdin'
-                    echo "Pushing Docker image with tag: santhoshadmin/nodeapp:41..."
-                    sh 'docker push santhoshadmin/nodeapp:41'
-                    echo "Pushing Docker image with latest tag..."
-                    sh 'docker push santhoshadmin/nodeapp:latest'
+                    // Use stored Docker Hub credentials to log in and push the image
+                    withCredentials([string(credentialsId: 'Docker_hub', variable: 'DOCKER_HUB_TOKEN')]) {
+                        sh """
+                        echo "Logging into Docker Hub..."
+                        echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
+                        
+                        echo "Tagging and pushing the Docker image..."
+                        docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:${env.BUILD_ID}
+                        docker push ${IMAGE_NAME}:latest
+                        """
+                    }
                 }
             }
         }
     }
-    
+
     post {
         always {
-            cleanWs()
-            sh 'docker image prune -af'
+            cleanWs() // Clean workspace after the job is complete
+
+            // Clean up unused Docker images
+            script {
+                sh """
+                echo "Cleaning up unused Docker images..."
+                docker image prune -af
+                """
+            }
         }
     }
 }
