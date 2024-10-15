@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'santhoshadmin/k8-node' // Name for the Docker image
+        IMAGE_NAME = 'santhoshadmin/k8-node' // Base name for the Docker image
+        BUILD_TAG = 'nodeapp' // Custom tag name prefix
     }
 
     stages {
@@ -16,10 +17,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using shell commands
+                    // Build the Docker image with the custom tag
                     sh """
                     echo "Building Docker image..."
-                    docker build -t ${IMAGE_NAME}:${env.BUILD_ID} .
+                    docker build -t ${IMAGE_NAME}:${BUILD_TAG}-${env.BUILD_ID} .
                     """
                 }
             }
@@ -28,15 +29,15 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    // Use stored Docker Hub credentials to log in and push the image
+                    // Log in to Docker Hub and push the image with the custom tag
                     withCredentials([string(credentialsId: 'Docker_hub', variable: 'DOCKER_HUB_TOKEN')]) {
                         sh """
                         echo "Logging into Docker Hub..."
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
                         echo "Tagging and pushing the Docker image..."
-                        docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:${env.BUILD_ID}
+                        docker tag ${IMAGE_NAME}:${BUILD_TAG}-${env.BUILD_ID} ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:${BUILD_TAG}-${env.BUILD_ID}
                         docker push ${IMAGE_NAME}:latest
                         """
                     }
@@ -50,7 +51,7 @@ pipeline {
                     // Remove the Docker images from the Jenkins server
                     sh """
                     echo "Removing local Docker images..."
-                    docker rmi ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest || true
+                    docker rmi ${IMAGE_NAME}:${BUILD_TAG}-${env.BUILD_ID} ${IMAGE_NAME}:latest || true
                     """
                 }
             }
