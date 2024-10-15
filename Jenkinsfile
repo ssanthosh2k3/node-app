@@ -43,6 +43,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Clean Up Docker Images') {
+            steps {
+                script {
+                    // Remove the Docker images from the Jenkins server
+                    sh """
+                    echo "Removing local Docker images..."
+                    docker rmi ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest || true
+                    """
+                }
+            }
+        }
     }
 
     post {
