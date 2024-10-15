@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'santhoshadmin/nodeapp' // Updated the image name to 'nodeapp'
+        IMAGE_NAME = 'santhoshadmin/nodeapp' // Name for the Docker image
     }
 
     stages {
@@ -16,10 +16,22 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image using the build number for tagging
+                    // Build the Docker image using shell commands
                     sh """
-                    echo "Building Docker image with tag: ${IMAGE_NAME}:${env.BUILD_NUMBER}..."
-                    docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} .
+                    echo "Building Docker image with tag: ${IMAGE_NAME}:${env.BUILD_ID}..."
+                    docker build -t ${IMAGE_NAME}:${env.BUILD_ID} .
+                    """
+                }
+            }
+        }
+
+        stage('Tag Docker Image') {
+            steps {
+                script {
+                    // Tag the image as 'latest' for Docker Hub push
+                    sh """
+                    echo "Tagging the Docker image as latest..."
+                    docker tag ${IMAGE_NAME}:${env.BUILD_ID} ${IMAGE_NAME}:latest
                     """
                 }
             }
@@ -34,9 +46,10 @@ pipeline {
                         echo "Logging into Docker Hub..."
                         echo "${DOCKER_HUB_TOKEN}" | docker login -u santhoshadmin --password-stdin
                         
-                        echo "Tagging and pushing the Docker image..."
-                        docker tag ${IMAGE_NAME}:${env.BUILD_NUMBER} ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:${env.BUILD_NUMBER}
+                        echo "Pushing Docker image with tag: ${IMAGE_NAME}:${env.BUILD_ID}..."
+                        docker push ${IMAGE_NAME}:${env.BUILD_ID}
+                        
+                        echo "Pushing Docker image with latest tag..."
                         docker push ${IMAGE_NAME}:latest
                         """
                     }
